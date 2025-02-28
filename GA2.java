@@ -1,7 +1,10 @@
+//data manager
+
 import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Scanner;
 
 //common attributes class
@@ -55,6 +58,7 @@ class tvShows extends commonAttributes{
     }
 }
 
+//video game class
 class videoGames extends commonAttributes{
     //unique attributes
     String platform;
@@ -108,6 +112,70 @@ class Manager {
     //gets total number of items within the media array
     public int getTotalMediaCount() {
         return mediaList.size();
+    }
+
+    //gets number of movies within list
+    public int getMovieCount() {
+        return (int) mediaList.stream().filter(m -> m instanceof movies).count();
+    }
+
+    //gets number of tv shows within list
+    public int getTVShowCount() {
+        return (int) mediaList.stream().filter(m -> m instanceof tvShows).count();
+    }
+
+    //gets number of video games within list
+    public int getVideoGameCount() {
+        return (int) mediaList.stream().filter(m -> m instanceof videoGames).count();
+    }
+
+    //gets number of music albums within list
+    public int getMusicAlbumCount() {
+        return (int) mediaList.stream().filter(m -> m instanceof musicAlbums).count();
+    }
+
+    //finds oldest product by release year
+    public commonAttributes getOldestMedia() {
+        return mediaList.stream().min(Comparator.comparingInt(m -> m.release_year)).orElse(null);
+    }
+
+    //finds most popular video game by copies sold
+    public videoGames getMostPopularVideoGame() {
+        return mediaList.stream()
+                .filter(m -> m instanceof videoGames)   //filters for instances of video games
+                .map(m -> (videoGames) m)   //casts object to video games
+                .max(Comparator.comparingDouble(v -> v.copies_sold))    //finds the maximum between all instances of copies sold
+                .orElse(null);  //otherwise it is null
+    }
+
+    //finds most popular music albums
+    public musicAlbums getMostPopularMusicAlbum() {
+        return mediaList.stream()
+                .filter(m -> m instanceof musicAlbums)  //filters for instances of music albums
+                .map(m -> (musicAlbums) m)  //casts object to music albums
+                .max(Comparator.comparingInt(a -> a.global_sales))  //finds the maximum between all instances of global sales
+                .orElse(null);  //otherwise it is null
+    }
+
+
+    //add getCommonAgeRating here
+
+    //method that returns shortest movie
+    public movies getShortestMovie() {
+        return mediaList.stream()
+                .filter(m -> m instanceof movies)
+                .map(m -> (movies) m)
+                .min(Comparator.comparingInt(m -> m.durations_minutes))
+                .orElse(null);
+    }
+
+    //method that returns shortest music albums
+    public musicAlbums getShortestMusicAlbum() {
+        return mediaList.stream()
+                .filter(m -> m instanceof musicAlbums)
+                .map(m -> (musicAlbums) m)
+                .min(Comparator.comparingDouble(a -> a.duration_minutes))
+                .orElse(null);
     }
 
     //method that loads/reads csv
@@ -181,12 +249,26 @@ public class GA2 {
         Scanner scnr = new Scanner(System.in);
         Manager manager = new Manager();
 
+        System.out.println("\nPut your data set in the same folder this program is running in and type in the name of the file along with the extension.");
+        System.out.println("You can also input the file path.");
         String filename = scnr.nextLine();
-
         manager.loadMedia(filename);
+        commonAttributes oldestMedia = manager.getOldestMedia();
 
-        System.out.println("total media count: " + manager.getTotalMediaCount());
+        System.out.println("\nTotal media count: " + manager.getTotalMediaCount());
+        System.out.println("Movies: " + manager.getMovieCount());
+        System.out.println("TV Shows: " + manager.getTVShowCount());
+        System.out.println("Video Games: " + manager.getVideoGameCount());
+        System.out.println("Music Albums: " + manager.getMusicAlbumCount());
 
+        if (oldestMedia != null) {
+            System.out.println("Oldest media: " + oldestMedia.title + " (" + oldestMedia.release_year + ")");
+        }
+
+        System.out.println("Most popular video game: " + manager.getMostPopularVideoGame().title);
+        System.out.println("Most popular music album: " + manager.getMostPopularMusicAlbum().title);
+        System.out.println("Shortest movie: " + manager.getShortestMovie().title);
+        System.out.println("Shortest music album: " + manager.getShortestMusicAlbum().title);
         scnr.close();
 
     }
